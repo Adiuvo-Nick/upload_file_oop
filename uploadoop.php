@@ -5,14 +5,14 @@ class uploadoop {
 	/**
 	 * upload name
 	 *
-	 * @var int
+	 * @var string
 	 */
 	private $file_name;
 
 	/**
 	 * upload type
 	 *
-	 * @var int
+	 * @var string
 	 */
 	private $file_type;
 
@@ -26,14 +26,14 @@ class uploadoop {
 	/**
 	 * upload tmpname
 	 *
-	 * @var int
+	 * @var string
 	 */
 	private $file_tmpname;
 
 	/**
 	 * upload error
 	 *
-	 * @var int
+	 * @var string
 	 */
 	private $file_error;
 
@@ -45,9 +45,9 @@ class uploadoop {
 	private $file_count;
 
 	/**
-	 * file count
+	 * Random ID
 	 *
-	 * @var int
+	 * @var string
 	 */
 	private $random_id;
 
@@ -61,7 +61,7 @@ class uploadoop {
 	/**
 	 * errors
 	 *
-	 * @var int
+	 * @var string
 	 */
 	private $size_limit;
 
@@ -85,20 +85,6 @@ class uploadoop {
 		$this->random_id = uniqid();
 	}
 
-	public function file_sort($filetype) {
-		// File type vergelijken
-		$finfo = finfo_open( FILEINFO_MIME_TYPE );
-
-		$mime  = finfo_file( $finfo, $filetype );
-		switch ( $mime ) {
-			case 'application/pdf':
-				break;
-			default:
-				$this->file_upload_successful = 0;
-				return $this->file_upload_successful;
-		}
-		return $filetype;
-	}
 
 	public function run() {
 		// 3 bestanden limit
@@ -107,6 +93,7 @@ class uploadoop {
 			echo $this->file_upload_limit;
 		}
 
+		//for loop
 		for ( $i = 0; $i < $this->file_count; $i ++ ) {
 
 			// File type vergelijken
@@ -131,25 +118,59 @@ class uploadoop {
 			// Wanneer bestand voldoet aan alle eisen, upload bestand naar map
 			if ( $this->file_upload_successful == 1 ) {
 				echo $this->file_name[ $i ] . " is geupload</br>";
-					if ( ! file_exists( './uploads/' . $this->random_id ) ) {
-						mkdir( './uploads/' . $this->random_id, 0777, true );
-					}
-					$newFilePath = "./uploads/" . $this->random_id . '/' . $this->file_name[ $i ];
+				if ( ! file_exists( './uploads/' . $this->random_id ) ) {
+					mkdir( './uploads/' . $this->random_id, 0777, true );
+				}
+				$newFilePath = "./uploads/" . $this->random_id . '/' . $this->file_name[ $i ];
 
-					if ( move_uploaded_file( $this->file_tmpname[ $i ], $newFilePath ) ) {
-						$myfile = fopen( "uploads.txt", "a" );
-						$txt    = 'Date: ' . date( 'Y-m-d \TH:i:s' ) . ' Path: ' . $newFilePath . PHP_EOL;
-						fwrite( $myfile, $txt );
-						fclose( $myfile );
-					}
+				if ( move_uploaded_file( $this->file_tmpname[ $i ], $newFilePath ) ) {
+					$myfile = fopen( "uploads.txt", "a" );
+					$txt    = 'Date: ' . date( 'Y-m-d \TH:i:s' ) . ' Path: ' . $newFilePath . PHP_EOL;
+					fwrite( $myfile, $txt );
+					fclose( $myfile );
+				}
 			}
+		}
+	}
+
+	public function codeToMessage()
+	{
+		switch ($this->file_error) {
+			case UPLOAD_ERR_INI_SIZE:
+				echo "The uploaded file exceeds the upload_max_filesize directive in php.ini";
+				break;
+			case UPLOAD_ERR_FORM_SIZE:
+				echo "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form";
+				break;
+			case UPLOAD_ERR_PARTIAL:
+				echo "The uploaded file was only partially uploaded";
+				break;
+			case UPLOAD_ERR_NO_FILE:
+				echo "No file was uploaded";
+				break;
+			case UPLOAD_ERR_NO_TMP_DIR:
+				echo "Missing a temporary folder";
+				break;
+			case UPLOAD_ERR_CANT_WRITE:
+				echo "Failed to write file to disk";
+				break;
+			case UPLOAD_ERR_EXTENSION:
+				echo "File upload stopped by extension";
+				break;
+			default:
+				echo "Unknown upload error";
+				break;
 		}
 	}
 }
 
-if(isset($_FILES['upload'])) {
-	$upload = new uploadoop();
+$upload = new uploadoop();
+echo '<h1>Upload overzicht</h1>';
+if($_FILES['upload']['error']['0'] ==0) {
 	$upload->run();
+}
+else {
+	$upload->codeToMessage();
 }
 
 
